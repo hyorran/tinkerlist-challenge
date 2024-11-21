@@ -1,59 +1,11 @@
-interface Item {
-  id: string;
-  title: string;
-  estimated_duration: number;
-  front_time: number | null;
-  end_time: number | null;
-  back_time: number | null;
-}
-
-interface Part {
-  id: string;
-  title: string;
-  estimated_duration: number;
-  front_time: number | null;
-  end_time: number | null;
-  back_time: number | null;
-  items: Item[];
-}
-
-interface Episode {
-  id: string;
-  status: string;
-  title: string;
-  on_air_time: number;
-  off_air_time: number;
-  parts: Part[];
-}
-
-interface EpisodeData {
-  episode: Episode;
-  part: Part[];
-  item: Record<string, Item>;
-}
-
-interface TimingsData {
-  episode: {
-    on_air_time: number;
-    off_air_time: number;
-  };
-  part: Record<string, Part>;
-  item: Record<string, Item>;
-}
-
-interface MergedData {
-  episode: Episode;
-}
-
-export function mergeData(episodeData: EpisodeData, timingsData: TimingsData): MergedData {
+export function mergeData(episodeData, timingsData) {
   return {
     episode: {
       ...episodeData.episode,
       on_air_time: timingsData.episode.on_air_time,
       off_air_time: timingsData.episode.off_air_time,
       parts: episodeData.episode.parts.map((partId) => {
-        console.warn('episodeData.part', episodeData.part);
-        const part: Part = {
+        const part = {
           ...episodeData.part[partId],
           ...timingsData.part[partId]
         };
@@ -71,7 +23,7 @@ export function mergeData(episodeData: EpisodeData, timingsData: TimingsData): M
   };
 }
 
-export function msToTimeString(milliseconds: number, startTime = '00:00') {
+export function msToTimeString(milliseconds, startTime = '00:00') {
   const [startHours, startMinutes] = startTime.split(':').map(Number);
 
   const totalMilliseconds = startHours * 3600000 + startMinutes * 60000 + milliseconds;
@@ -85,7 +37,7 @@ export function msToTimeString(milliseconds: number, startTime = '00:00') {
   return `${formattedHours}:${formattedMinutes}`;
 }
 
-export function epochToHumanReadable(epoch: number) {
+export function epochToHumanReadable(epoch) {
   const date = new Date(epoch);
 
   const hours = date.getHours().toString().padStart(2, '0');
@@ -95,7 +47,7 @@ export function epochToHumanReadable(epoch: number) {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-export function calculateTimings(episodeData: MergedData) {
+export function calculateTimings(episodeData) {
   const result = JSON.parse(JSON.stringify(episodeData));
 
   const onAirTime = result.episode.on_air_time;
@@ -105,7 +57,7 @@ export function calculateTimings(episodeData: MergedData) {
   let previousBackTime = offAirTime;
   let previousEstimatedDuration = onAirTime - offAirTime;
 
-  result.episode.parts.forEach((part: Part) => {
+  result.episode.parts.forEach((part) => {
     part.front_time = previousEndTime + previousBackTime;
     part.end_time = (part.front_time || 0) + part.estimated_duration;
     part.back_time = previousBackTime - previousEstimatedDuration;
@@ -129,4 +81,31 @@ export function calculateTimings(episodeData: MergedData) {
   });
 
   return result;
+}
+
+export function subtractTimeStrings(time1, time2) {
+  const timeToSeconds = (time) => {
+    const [hours, minutes, seconds] = time.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  const secondsToTimeString = (totalSeconds) => {
+    const hours = Math.floor(totalSeconds / 3600)
+      .toString()
+      .padStart(2, '0');
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+  };
+
+  const seconds1 = timeToSeconds(time1);
+  const seconds2 = timeToSeconds(time2);
+
+  const diffInSeconds = seconds1 - seconds2;
+
+  const absDiff = Math.abs(diffInSeconds);
+
+  return secondsToTimeString(absDiff);
 }

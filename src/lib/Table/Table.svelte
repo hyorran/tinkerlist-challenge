@@ -1,16 +1,15 @@
-<script lang="ts">
-  import type { TableColumn, TableData } from './types';
+<script>
   import { writable } from 'svelte/store';
-  import { epochToHumanReadable, msToTimeString } from '../../routes/calculateTimings';
+  import { epochToHumanReadable, msToTimeString } from '$lib/utils';
 
-  export let columns: TableColumn[] = [];
-  export let data: TableData[] = [];
+  export let columns = [];
+  export let data = [];
 
-  const formatableColumns = ['back_time', 'end_time', 'front_time'];
+  const formattableColumns = ['back_time', 'end_time', 'front_time'];
 
-  const expandedRows = writable<Set<number>>(new Set());
+  const expandedRows = writable(new Set());
 
-  function toggleRow(index: number) {
+  function toggleRow(index) {
     expandedRows.update((current) => {
       const newSet = new Set(current);
       if (newSet.has(index)) {
@@ -37,7 +36,7 @@
 			<tr on:click={() => toggleRow(index)} class="cursor-pointer bg-gray-100">
 				{#each columns as { accessor }}
 					<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-						{#if formatableColumns.find((value) => value === accessor)}
+						{#if formattableColumns.find((value) => value === accessor)}
 							{epochToHumanReadable(row[accessor])}
 						{:else if accessor === 'estimated_duration'}
 							{msToTimeString(row[accessor])}
@@ -53,7 +52,7 @@
 					<tr>
 						{#each columns as { accessor }}
 							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-								{#if formatableColumns.find((value) => value === accessor)}
+								{#if formattableColumns.find((value) => value === accessor)}
 									{epochToHumanReadable(item[accessor])}
 								{:else if accessor === 'estimated_duration'}
 									{msToTimeString(item[accessor])}

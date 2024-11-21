@@ -1,5 +1,5 @@
-<script lang="ts">
-  import { calculateTimings, mergeData } from './calculateTimings';
+<script>
+  import { calculateTimings, mergeData } from '$lib/utils';
   import Table from '$lib/Table/Table.svelte';
   import episodes from './episodes.json'
   import timings from './timings.json'
