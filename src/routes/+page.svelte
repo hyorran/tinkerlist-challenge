@@ -8,8 +8,6 @@
   const mergedData = mergeData(episodes, timings);
   const result = calculateTimings(mergedData)
 
-  console.warn('result', result)
-
   let columns = [
     { label: "Title", accessor: "title" },
     { label: "Est. Duration", accessor: "estimated_duration" },
